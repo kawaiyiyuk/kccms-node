@@ -1,35 +1,38 @@
 <!doctype html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>index</title>
     <script src="https://cdn.bootcss.com/jquery/3.4.0/jquery.js"></script>
 </head>
+
 <body>
-    <button id="btn">增加数据</button>
-    <button id="btn2">删除数据</button>
+    <button id="btn">入库</button>
+    <button id="btn2">出库</button>
 
     <!-- <button id="btn2">获取数据</button> -->
 </body>
 
 <script>
-
-    $('#btn').on('click',ajax);
+    $('#btn').on('click', ajax);
     $('#btn2').on('click', ajaxFind);
-    function ajax () {
+
+    function ajax() {
         $.ajax({
-            url:'http://localhost:3000/library/addData',
-            dataType:'json',
-            type:'post',
+            url: 'http://localhost:3000/library/addData',
+            dataType: 'json',
+            type: 'post',
             data: {
+                id: '5cd113d66743c017c6eb31c8',
                 date: 1557331200000,
-                num: "11",
+                num: "10",
                 Remarks: "入库测试测试1",
-            //     num: "10",
-            //     price: "10"
+                dec: "商品描述",
+                price: "10"
             },
             success: function (data) {
                 console.log(data)
@@ -37,19 +40,24 @@
         })
     }
 
-        function ajaxFind() {
-                $.ajax({
-                    url: 'http://localhost:3000/library/addData',
-                    dataType: 'json',
-                    type: 'post',
-                    data: {
-                        '_id': '5cce721a1a9f1045fa42f850',
-                         'Remarks': "777777",
-                    },
-                    success: function (data) {
-                        console.log(data)
-                    }
-                })
+    function ajaxFind() {
+        $.ajax({
+            url: 'http://localhost:3000/library/outData',
+            dataType: 'json',
+            type: 'post',
+            data: {
+                id: '5cd113d66743c017c6eb31c8',
+                date: 1557331200000,
+                num: "10",
+                Remarks: "出库测试测试1",
+                // num: "10",
+                // price: "10"
+            },
+            success: function (data) {
+                console.log(data)
             }
+        })
+    }
 </script>
+
 </html>
