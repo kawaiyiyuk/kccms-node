@@ -9,8 +9,10 @@
     <script src="https://cdn.bootcss.com/jquery/3.4.0/jquery.js"></script>
 </head>
 <body>
-    <button id="btn">点击我</button>
-    <button id="btn2">获取数据</button>
+    <button id="btn">增加数据</button>
+    <button id="btn2">删除数据</button>
+
+    <!-- <button id="btn2">获取数据</button> -->
 </body>
 
 <script>
@@ -19,13 +21,13 @@
     $('#btn2').on('click', ajaxFind);
     function ajax () {
         $.ajax({
-            url:'http://localhost:3000/product/addData',
+            url:'http://localhost:3000/library/addData',
             dataType:'json',
             type:'post',
             data: {
-            data: 1557331200000
-            //     dec: "11",
-            //     name: "商品测试1",
+                date: 1557331200000,
+                num: "11",
+                Remarks: "入库测试测试1",
             //     num: "10",
             //     price: "10"
             },
@@ -37,15 +39,12 @@
 
         function ajaxFind() {
                 $.ajax({
-                    url: 'http://localhost:3000/product/updateData',
+                    url: 'http://localhost:3000/library/addData',
                     dataType: 'json',
                     type: 'post',
                     data: {
                         '_id': '5cce721a1a9f1045fa42f850',
                          'Remarks': "777777",
-                        //     name: "商品测试1",
-                        //     num: "10",
-                        //     price: "10"
                     },
                     success: function (data) {
                         console.log(data)

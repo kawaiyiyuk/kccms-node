@@ -37,19 +37,6 @@ app.post('/product/findData', (req, res) => {
         if(error) {
             console.log(error);
         }
-        // for (let i = 0;i < data.length;i++) {
-        //     if (data[i].date) {
-        //         let date = new Date(parseInt(data[i].date));
-        //         Y = date.getFullYear() + '-';
-        //         M = (date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1) + '-';
-        //         D = (date.getDate() < 10 ? '0' + (date.getDate()) : date.getDate());
-        //         //D = date.getDate() + ' ';
-        //         h = date.getHours() + ':';
-        //         m = date.getMinutes() + ':';
-        //         s = date.getSeconds();
-        //         data[i].date = Y + M + D
-        //     }
-        // }
 
         res.json(data)
     })
@@ -94,4 +81,43 @@ app.post('/product/addData',(req, res) => {
         res.end()
     })
 })
+/***库存管理结束***/
+
+
+
+
+
+/***出入库系统开始***/
+//新增入库
+app.post('/library/addData', (req, res) => {
+        MongoClient.connect('mongodb://127.0.0.1:27017/product', (err, db) => {
+            if (err) {
+                console.log(err);
+                return
+            }
+            let collection = db.collection('inlibrary');
+
+            collection.update({
+                'id': '123456'
+            }, {
+                '$push': {
+                    'inlibrary': {
+                        "libid": "54321",
+                        "date": "2019-05-07",
+                        "num": "22"
+                    }
+
+                }
+            },(error,data) => {
+                if(error) {
+                    console.log(error)
+                }
+
+                console.log(data)
+            })
+        })
+})
+
+
+
 app.listen(3000,'127.0.0.1')
