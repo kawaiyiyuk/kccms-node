@@ -107,12 +107,12 @@ app.post('/product/addData', (req, res) => {
 /***出入库系统开始***/
 
 //查询出入库
-app.post('/library/findData',(req,res) => {
-        let _id = new ObjectID(req.body._id)
+app.post('/library/findData', (req, res) => {
+    let id = req.body.id;
     DB.find('mongodb://127.0.0.1:27017/product', 'library', {
-        _id
-    },(error,data) => {
-        if(error) {
+        'id': id
+    }, (error, data) => {
+        if (error) {
             return false
         };
         // res.send('library')
@@ -157,7 +157,9 @@ app.post('/library/addData', (req, res) => {
             }, (error_n, data_n) => {
                 if (error_n) {
                     return false
+                    console.log(error_n);
                 }
+                console.log(data_n[0].num, req.body.num)
                 //修改现有库存
                 //console.log(data_n[0].fee, req.body.num)
                 DB.update('mongodb://127.0.0.1:27017/product', 'product', {
@@ -167,6 +169,7 @@ app.post('/library/addData', (req, res) => {
                 }, (error_edit, data_edit) => {
                     if (error_edit) {
                         return false
+                        console.log(error_edit)
                     }
                     res.end()
                 })
@@ -181,32 +184,103 @@ app.post('/library/addData', (req, res) => {
 
 //删除入库数据
 
-app.post('/library/deleteinlibrary',(req ,res) => {
+app.post('/library/deleteinlibrary', (req, res) => {
     MongoClient.connect('mongodb://127.0.0.1:27017/product', (err, db) => {
-        if(err) {
+        if (err) {
             console.log(err)
             return false
         }
 
         let collection = db.collection('library');
+        let product_id = req.body.id
         collection.updateOne({
             'id': req.body.id
-        },{
+        }, {
             $pull: {
                 inlibrary: {
                     'libid': req.body.libid
                 }
             }
-        },(error,data) => {
-            if(error) {
+        }, (error, data) => {
+            if (error) {
                 console.log(error);
                 return false
             }
+            /*删除 product 集合的数量*/
+            //查找现有库存
+            DB.find('mongodb://127.0.0.1:27017/product', 'product', {
+                '_id': new ObjectID(product_id)
+            }, (error_n, data_n) => {
+                if (error_n) {
+                    return false
+                }
+                //修改现有库存
+                //console.log(data_n[0].fee, req.body.num)
+                DB.update('mongodb://127.0.0.1:27017/product', 'product', {
+                    '_id': new ObjectID(product_id)
+                }, {
+                    'num': (parseInt(data_n[0].num) - parseInt(req.body.num))
+                }, (error_edit, data_edit) => {
+                    if (error_edit) {
+                        return false
+                    }
+                    res.end()
+                })
+
+            })
+
             res.end()
         })
     })
 })
 
+//删除出库数据
+app.post('/library/deleteoutlibrary', (req, res) => {
+    MongoClient.connect('mongodb://127.0.0.1:27017/product', (err, db) => {
+        if (err) {
+            console.log(err)
+            return false
+        }
+        let collection = db.collection('library');
+        let product_id = req.body.id
+        collection.updateOne({
+            'id': req.body.id
+        }, {
+            $pull: {
+                outlibrary: {
+                    'libid': req.body.libid
+                }
+            }
+        }, (error, data) => {
+            if (error) {
+                console.log(error);
+                return false
+            }
+            //查找现有库存
+            DB.find('mongodb://127.0.0.1:27017/product', 'product', {
+                '_id': new ObjectID(product_id)
+            }, (error_n, data_n) => {
+                if (error_n) {
+                    return false
+                }
+
+                //修改现有库存
+                //console.log(data_n[0].fee, req.body.num)
+                DB.update('mongodb://127.0.0.1:27017/product', 'product', {
+                    '_id': new ObjectID(product_id)
+                }, {
+                    'num': (parseInt(data_n[0].num) + parseInt(req.body.num))
+                }, (error_edit, data_edit) => {
+                    if (error_edit) {
+                        return false
+                    }
+                    res.end()
+                })
+
+            })
+        })
+    })
+})
 //新增出库
 
 app.post('/library/outData', (req, res) => {
