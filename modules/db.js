@@ -36,6 +36,10 @@ exports.find = (DbUrl,collectionname, json, callback) => {
         })
     })
 }
+
+
+
+
 //数据库增加数据
 exports.insert = (DbUrl,collectionname,setJson,callback) => {
     __connectDb(DbUrl,(db) => {

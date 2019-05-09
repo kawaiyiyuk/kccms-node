@@ -43,6 +43,43 @@ app.post('/product/findData', (req, res) => {
         res.json(data)
     })
 });
+
+//根据商品名模糊查询
+
+app.post('/product/fuzzyQueryData',(req, res) => {
+
+        MongoClient.connect('mongodb://127.0.0.1:27017/product', (err, db) => {
+            if(err) {
+                console.log(err);
+                return false
+            }
+            //链接数据库
+            let collection = db.collection('product');
+            var reg = new RegExp(req.body.name, 'i');
+            var reg2 = new RegExp(req.body.dec, 'i');
+
+            collection.find({
+                $or: [{
+                    "name": {
+                        $regex: reg
+                    }
+                },{
+                    "dec": {
+                        $regex: reg2
+                    }
+                }],
+                
+            }).toArray((error,data) => {
+                if (error) {
+                    console.log(error)
+                    return false
+                }
+                res.json(data)
+            })
+        })
+    
+})
+
 //删除数据
 app.post('/product/deleteData', (req, res) => {
     DB.delete('mongodb://127.0.0.1:27017/product', 'product', {
