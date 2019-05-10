@@ -10,7 +10,34 @@ const bodyParser = require('body-parser');
 const MongoClient = require('mongodb').MongoClient;
 const ObjectID = require('mongodb').ObjectID
 const DB = require('./modules/db');
+const md5 = require('md5-node');
+const LoginRouter = require('./routers/login')
+const SvgRouter = require('./routers/svg')
+
+//下面 两个组件是配合随机码用的
+const cookieParser = require('cookie-parser');
+const session = require('express-session')
+
 const app = express();
+app.use(cookieParser());
+
+//配置 session 和 cookie
+
+app.use(session({
+
+    secret: '12345',
+
+    name: 'name',
+
+    cookie: {
+        maxAge: 60000
+    },
+
+    resave: false,
+
+    saveUninitialized: true,
+
+}));
 
 app.use(bodyParser.urlencoded({
     extended: false
@@ -26,9 +53,17 @@ app.use('*', function (req, res, next) {
     next();
 });
 
-app.get('/', (req, res) => {
-    res.send('index2')
-})
+// app.get('/', (req, res) => {
+//     let str = md5('123456');
+//     console.log(str)
+//     res.send('index2')
+// })
+
+
+//登录接口
+
+app.use('/login', LoginRouter)
+app.use('/svg', SvgRouter)
 
 //查找数据
 app.post('/product/findData', (req, res) => {
@@ -57,7 +92,8 @@ app.post('/product/fuzzyQueryData',(req, res) => {
             let collection = db.collection('product');
             var reg = new RegExp(req.body.name, 'i');
             var reg2 = new RegExp(req.body.dec, 'i');
-
+            //$or 模式 可以匹配多个条件
+            //$regex 模式 按设定的正则表达式进行匹配
             collection.find({
                 $or: [{
                     "name": {
