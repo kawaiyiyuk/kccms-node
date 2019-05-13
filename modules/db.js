@@ -50,18 +50,6 @@ exports.insert = (DbUrl,collectionname,setJson,callback) => {
             callback(error,data)
             db.close()
         })
-        // collection.find({'title':setJson.title}).toArray((error, data) => {
-        //     if(data.length >0) {
-        //         console.log('数据已存在');
-        //         return false
-        //     }else {
-        //         collection.insertOne(setJson, (error, data) => {
-        //             console.log('添加数据成功')
-        //             callback(error,data)
-        //         })
-        //     }
-
-        // })
 
     })
 }
