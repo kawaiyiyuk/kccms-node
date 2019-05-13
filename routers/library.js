@@ -319,4 +319,15 @@ router.post('/outData', (req, res) => {
             })
         })
 })
+
+//编辑入库
+//暂时先不要 后续添加
+router.post('/editinlibrart', (req, res) => {
+    MongoClient.connect('mongodb://127.0.0.1:27017/product',(err, db) => {
+        let collection = db.collection('library');
+        console.log(req.body)
+        collection.update
+
+    })
+})
 module.exports = router
