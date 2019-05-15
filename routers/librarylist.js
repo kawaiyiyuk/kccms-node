@@ -19,12 +19,12 @@ router.post('/overview', (req, res) => {
         let outprice = 0;
         if (element.inlibrary.length > 0) {
           element.inlibrary.forEach((item) => {
-            inprice += parseInt(item.price*item.num)
+            inprice += parseInt(item.price * item.num)
             // console.log(item.num)
           });
-          
+
         }
-        if (element.outlibrary.length >0) {
+        if (element.outlibrary.length > 0) {
           element.outlibrary.forEach((item) => {
             outprice += parseInt(item.price * item.num)
           })
@@ -39,6 +39,33 @@ router.post('/overview', (req, res) => {
         'inpricetotle': inpricetotle,
         'outpricetotle': outpricetotle
       })
+    })
+  })
+})
+
+router.post('/librarylist', (req, res) => {
+  let product_name = null
+  // MongoClient.connect('mongodb://127.0.0.1:27017/product', (err, db) => {
+  //   let collection = db.collection('product');
+  //   collection.find({
+
+  //   }, {
+
+  //   }).toArray(() => {
+
+  //   })
+  // })
+
+  MongoClient.connect('mongodb://127.0.0.1:27017/product', (err, db) => {
+    let collection = db.collection('librarylist');
+    collection.find({
+      'user_id': req.body.user_id
+    }).toArray((error, data) => {
+      res.send({
+        code:200,
+        librarylist: data[0].librarylist
+      })
+      console.log(data)
     })
   })
 })

@@ -16,6 +16,7 @@ const SvgRouter = require('./routers/svg')
 
 const product = require('./routers/product')
 const library = require('./routers/library')
+const librarylist = require('./routers/librarylist')
 //下面 两个组件是配合随机码用的
 const cookieParser = require('cookie-parser');
 const session = require('express-session')
@@ -62,9 +63,10 @@ app.use('/login', LoginRouter)
 app.use('/svg', SvgRouter)
 //商品接口
 app.use('/product', product)
-
 //出入库查询接口
  app.use('/library', library)
+
+ app.use('/librarylist', librarylist)
 
 
 app.listen(3000, '127.0.0.1')
