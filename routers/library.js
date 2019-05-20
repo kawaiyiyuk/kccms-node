@@ -98,7 +98,7 @@ router.post('/addData', (req, res) => {
                     code: "200",
                     msg: "操作成功"
                 })
-                
+
             })
 
         })
@@ -118,7 +118,8 @@ router.post('/addData', (req, res) => {
                     date: reqData.date,
                     libry_id: reqData.libid,
                     product_id: product_id,
-                    name: reqData.name
+                    name: reqData.name,
+                    status: 0 //0入库 1  出库
                 }
             }
         }, (error, data) => {
@@ -138,7 +139,7 @@ router.post('/deleteinlibrary', (req, res) => {
     let user_id = req.body.user_id;
     //增加每条入库数据的 id
     let libry_id = req.body.libry_id
-    //新增入库数据
+    //删除入库数据
     MongoClient.connect('mongodb://127.0.0.1:27017/product', (err, db) => {
         let collection = db.collection('library');
         if (err) {
@@ -165,6 +166,24 @@ router.post('/deleteinlibrary', (req, res) => {
         })
 
     })
+    //删除出入库列表数据
+    MongoClient.connect('mongodb://127.0.0.1:27017/product', (err, db) => {
+        if (err) throw err;
+
+        let collection = db.collection('librarylist');
+        collection.update({
+            'user_id': user_id,
+        }, {
+            '$pull': {
+                'librarylist': {
+                    libry_id: libry_id
+                }
+            }
+        })
+
+    })
+
+
     //修改 product 的数量
     MongoClient.connect('mongodb://127.0.0.1:27017/product', (err, db) => {
         if (err) throw err
@@ -235,6 +254,23 @@ router.post('/deleteoutlibrary', (req, res) => {
         })
 
     })
+    //删除出入库列表数据
+    MongoClient.connect('mongodb://127.0.0.1:27017/product', (err, db) => {
+        if (err) throw err;
+
+        let collection = db.collection('librarylist');
+        collection.update({
+            'user_id': user_id,
+        }, {
+            '$pull': {
+                'librarylist': {
+                    libry_id: libry_id
+                }
+            }
+        })
+
+    })
+
     //修改 product 的数量
     MongoClient.connect('mongodb://127.0.0.1:27017/product', (err, db) => {
         if (err) throw err
@@ -341,6 +377,31 @@ router.post('/outData', (req, res) => {
                 db.close()
             })
 
+        })
+    })
+
+    //添加出入库列表
+    MongoClient.connect('mongodb://127.0.0.1:27017/product', (err, db) => {
+        let collection = db.collection('librarylist');
+        collection.update({
+            'user_id': user_id
+        }, {
+            "$push": {
+                "librarylist": {
+                    price: reqData.price,
+                    num: reqData.num,
+                    dec: reqData.dec,
+                    Remarks: reqData.Remarks,
+                    date: reqData.date,
+                    libry_id: reqData.libid,
+                    product_id: product_id,
+                    name: reqData.name,
+                    status: 1 //0入库 1  出库
+                }
+            }
+        }, (error, data) => {
+            if (error) throw error
+            db.close()
         })
     })
 })
