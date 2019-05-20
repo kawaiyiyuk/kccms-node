@@ -10,7 +10,37 @@ const bodyParser = require('body-parser');
 const MongoClient = require('mongodb').MongoClient;
 const ObjectID = require('mongodb').ObjectID
 const DB = require('./modules/db');
+const md5 = require('md5-node');
+const LoginRouter = require('./routers/login')
+const SvgRouter = require('./routers/svg')
+
+const product = require('./routers/product')
+const library = require('./routers/library')
+const librarylist = require('./routers/librarylist')
+//下面 两个组件是配合随机码用的
+const cookieParser = require('cookie-parser');
+const session = require('express-session')
+
 const app = express();
+app.use(cookieParser());
+
+//配置 session 和 cookie
+
+app.use(session({
+
+    secret: '12345',
+
+    name: 'name',
+
+    cookie: {
+        maxAge: 60000
+    },
+
+    resave: false,
+
+    saveUninitialized: true,
+
+}));
 
 app.use(bodyParser.urlencoded({
     extended: false
@@ -26,246 +56,17 @@ app.use('*', function (req, res, next) {
     next();
 });
 
-app.get('/', (req, res) => {
-    res.send('index2')
-})
 
-//查找数据
-app.post('/product/findData', (req, res) => {
-    if (req.body._id) {
-        req.body._id = new ObjectID(req.body._id)
-    }
-    DB.find('mongodb://127.0.0.1:27017/product', 'product', req.body, (error, data) => {
-        if (error) {
-            console.log(error);
-        }
+//登录接口
 
-        res.json(data)
-    })
-});
-//删除数据
-app.post('/product/deleteData', (req, res) => {
-    DB.delete('mongodb://127.0.0.1:27017/product', 'product', {
-        _id: new ObjectID(req.body._id)
-    }, (error, data) => {
-        if (error) {
-            return false
-        }
-        res.end()
-    })
-});
-//修改数据
-app.post('/product/updateData', (req, res) => {
-    DB.update('mongodb://127.0.0.1:27017/product', 'product', {
-        _id: new ObjectID(req.body._id)
-    }, {
-        name: req.body.name,
-        price: req.body.price,
-        num: req.body.num,
-        dec: req.body.dec,
-        Remarks: req.body.Remarks,
-        date: req.body.date,
-        barCode: req.body.barCode
+app.use('/login', LoginRouter)
+app.use('/svg', SvgRouter)
+//商品接口
+app.use('/product', product)
+//出入库查询接口
+ app.use('/library', library)
 
-    }, (error, data) => {
-        console.log(data)
-        if (error) {
-            return false
-        }
-        res.end()
-    })
-});
-//添加数据
-app.post('/product/addData', (req, res) => {
+ app.use('/librarylist', librarylist)
 
-    DB.insert('mongodb://127.0.0.1:27017/product', 'product', req.body, (error, data) => {
-        //console.log(req.body)
-        if (error) {
-            return false
-        }
-        //将 ObjectID 转换成字符串类型
-        let library_id = data.ops[0]._id.toHexString();
-        DB.insert('mongodb://127.0.0.1:27017/product', 'library', {
-            'id': library_id,
-            'inlibrary': [],
-            'outlibrary': []
-        }, (error2, data2) => {
-            if (error2) {
-                return false
-            }
-            res.end()
-        })
-
-    })
-})
-/***库存管理结束***/
-
-
-
-
-
-/***出入库系统开始***/
-
-//查询出入库
-app.post('/library/findData',(req,res) => {
-        let _id = new ObjectID(req.body._id)
-    DB.find('mongodb://127.0.0.1:27017/product', 'library', {
-        _id
-    },(error,data) => {
-        if(error) {
-            return false
-        };
-        // res.send('library')
-        res.json(data)
-    })
-})
-
-
-//新增入库
-app.post('/library/addData', (req, res) => {
-    //新增入库数据
-    MongoClient.connect('mongodb://127.0.0.1:27017/product', (err, db) => {
-        if (err) {
-            console.log(err);
-            return false
-        }
-        //连接数据库
-        let collection = db.collection('library');
-        //查询条件的 ID
-        //这里的 Id 查询了两个数据库 一个是 product 的 ObjectID 
-        //还有一个是自定义的每个商品出入库的 Id 这个是创建库存的时候根据库存的ObjectID添加上的
-
-        let product_id = req.body.id;
-        //删除 req.body 内的 id 属性
-        delete req.body.id;
-        //增加每条入库数据的 id
-        req.body.libid = new ObjectID().toHexString()
-
-        collection.update({
-            'id': product_id
-        }, {
-            '$push': {
-                'inlibrary': req.body
-            }
-        }, (error, data) => {
-            if (error) {
-                console.log(error)
-            }
-            //查找现有库存
-            DB.find('mongodb://127.0.0.1:27017/product', 'product', {
-                '_id': new ObjectID(product_id)
-            }, (error_n, data_n) => {
-                if (error_n) {
-                    return false
-                }
-                //修改现有库存
-                //console.log(data_n[0].fee, req.body.num)
-                DB.update('mongodb://127.0.0.1:27017/product', 'product', {
-                    '_id': new ObjectID(product_id)
-                }, {
-                    'num': (parseInt(data_n[0].num) + parseInt(req.body.num))
-                }, (error_edit, data_edit) => {
-                    if (error_edit) {
-                        return false
-                    }
-                    res.end()
-                })
-
-            })
-
-        })
-        //关闭数据库
-        db.close()
-    })
-})
-
-//删除入库数据
-
-app.post('/library/deleteinlibrary',(req ,res) => {
-    MongoClient.connect('mongodb://127.0.0.1:27017/product', (err, db) => {
-        if(err) {
-            console.log(err)
-            return false
-        }
-
-        let collection = db.collection('library');
-        collection.updateOne({
-            'id': req.body.id
-        },{
-            $pull: {
-                inlibrary: {
-                    'libid': req.body.libid
-                }
-            }
-        },(error,data) => {
-            if(error) {
-                console.log(error);
-                return false
-            }
-            res.end()
-        })
-    })
-})
-
-//新增出库
-
-app.post('/library/outData', (req, res) => {
-    MongoClient.connect('mongodb://127.0.0.1:27017/product', (err, db) => {
-        if (err) {
-            console.log(err);
-            return false
-        }
-        //连接数据库
-        let collection = db.collection('library');
-        //查询条件的 ID
-        //这里的 Id 查询了两个数据库 一个是 product 的 ObjectID 
-        //还有一个是自定义的每个商品出入库的 Id 这个是创建库存的时候根据库存的ObjectID添加上的
-
-        let product_id = req.body.id;
-        //删除 req.body 内的 id 属性
-        delete req.body.id;
-        //增加每条入库数据的 id
-        req.body.libid = new ObjectID().toHexString()
-
-        collection.update({
-            'id': product_id
-        }, {
-            '$push': {
-                'outlibrary': req.body
-            }
-        }, (error, data) => {
-            if (error) {
-                console.log(error)
-            }
-            //查找现有库存
-            DB.find('mongodb://127.0.0.1:27017/product', 'product', {
-                '_id': new ObjectID(product_id)
-            }, (error_n, data_n) => {
-                if (error_n) {
-                    return false
-                }
-                //修改现有库存
-                //console.log(data_n[0].fee, req.body.num)
-                DB.update('mongodb://127.0.0.1:27017/product', 'product', {
-                    '_id': new ObjectID(product_id)
-                }, {
-                    'num': (parseInt(data_n[0].num) - parseInt(req.body.num))
-                }, (error_edit, data_edit) => {
-                    if (error_edit) {
-                        return false
-                    }
-                    res.end()
-                })
-
-            })
-
-        })
-        //关闭数据库
-        db.close()
-    })
-})
-
-//分支测试文字
-//分支冲突测试22222
 
 app.listen(3000, '127.0.0.1')
